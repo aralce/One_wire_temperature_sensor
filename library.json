@@ -1,0 +1,10 @@
+{
+    "name": "One_wire_temperature_sensor",
+    "version": "1.0.0",
+    "author": "Ariel Cerfoglia <ariel.cerfoglia@gmail.com>",
+    "build": {
+        "srcDir": ".",
+        "srcFilter": "+<*> +<implementation/*> -<test/*>"
+      }
+  }
+  

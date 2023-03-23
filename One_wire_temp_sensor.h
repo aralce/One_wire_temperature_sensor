@@ -8,8 +8,6 @@ class DallasTemperature;
 
 typedef uint8_t Device_address[8];
 
-#define MAX_NUMBER_OF_SENSORS  10
-
 class One_wire_temp_sensor {
 public:
     explicit One_wire_temp_sensor(uint8_t pin);
@@ -31,6 +29,9 @@ private:
     DallasTemperature* temp_sensor;
 
     uint8_t pin_used;
-    uint64_t address_list[MAX_NUMBER_OF_SENSORS];
     size_t devices_found;
+    uint8_t resolution = 12;
+    
+    static const uint8_t MAX_NUMBER_OF_SENSORS = 10;
+    uint64_t address_list[MAX_NUMBER_OF_SENSORS];
 };

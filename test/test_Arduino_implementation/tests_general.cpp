@@ -23,6 +23,8 @@ TEST(One_wire_temperature_sensor_arduino_init, WHEN_class_is_instanced_THEN_init
     mock().expectOneCall("DallasTemperature->constructor(OneWire*)")
           .ignoreOtherParameters();
 
+    mock().expectOneCall("DallasTemperature->begin");
+
     mock().expectOneCall("DallasTemperature->setWaitForConversion")
           .withBoolParameter("flag", false);
 

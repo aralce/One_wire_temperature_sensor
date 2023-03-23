@@ -14,6 +14,7 @@ One_wire_temp_sensor::One_wire_temp_sensor(uint8_t pin) {
     one_wire = new OneWire(pin);
     temp_sensor = new DallasTemperature(one_wire);
     
+    temp_sensor->begin();
     temp_sensor->setWaitForConversion(false);
 }
 
@@ -43,7 +44,8 @@ void One_wire_temp_sensor::request_temperatures() const {
 }
 
 float One_wire_temp_sensor::get_temperature_in_celsius(Device_address address) const {
-    return temp_sensor->getTempC(address);
+    float temp = temp_sensor->getTempC(address);
+    return temp;
 }
 
 uint16_t One_wire_temp_sensor::get_millis_to_wait_for_conversion(uint8_t resolution) const {

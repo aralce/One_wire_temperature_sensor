@@ -94,6 +94,7 @@ typedef uint64_t onewire_addr_t;
 typedef onewire_addr_t ds18x20_addr_t;
 
 /** An address value which can be used to indicate "any device on the bus" */
+#define ONEWIRE_NONE ((onewire_addr_t)(0xffffffffffffffffLL))
 #define DS18X20_ANY ONEWIRE_NONE
 
 /** Family ID (lower address byte) of DS18B20 sensors */
