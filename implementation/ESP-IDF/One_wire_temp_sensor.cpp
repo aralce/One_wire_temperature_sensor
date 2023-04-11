@@ -51,14 +51,10 @@ void One_wire_temp_sensor::set_resolution(uint8_t new_resolution) {
     uint8_t TH = 0x00;
     uint8_t TL = 0xFF;
     uint8_t config = (new_resolution - MIN_RESOLUTION) << 5;
-    printf("1\r\n");
     uint8_t bytes_to_write[3] = {TH, TL, config};
-    printf("2\r\n");
 
     for (size_t i = 0; i < devices_found; ++i) {
-        printf("3\r\n");
         ds18x20_write_scratchpad((gpio_num_t)pin_used, address_list[i], bytes_to_write);
-        printf("4\r\n");
         ds18x20_copy_scratchpad((gpio_num_t)pin_used, address_list[i]);
     }
     resolution = new_resolution;
