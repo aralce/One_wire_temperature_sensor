@@ -66,6 +66,13 @@ void One_wire_temp_sensor::request_temperatures() const {
     ds18x20_measure((gpio_num_t)pin_used, DS18X20_ANY, DO_NOT_WAIT_FOR_CONVERSION);
 }
 
+#define WAIT_FOR_CONVERSION true
+
+void One_wire_temp_sensor::request_temperature_BLOCKING() const
+{
+    ds18x20_measure((gpio_num_t)pin_used, DS18X20_ANY, WAIT_FOR_CONVERSION);
+}
+
 static ds18x20_addr_t get_ds18x20_addr_FROM_device_address(Device_address address);
 
 float One_wire_temp_sensor::get_temperature_in_celsius(Device_address address) const {

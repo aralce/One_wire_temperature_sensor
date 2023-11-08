@@ -21,6 +21,8 @@ public:
 
     void request_temperatures() const;
 
+    void request_temperature_BLOCKING() const;
+
     float get_temperature_in_celsius(Device_address address) const;
 
     uint16_t get_millis_to_wait_for_conversion(uint8_t resolution) const;

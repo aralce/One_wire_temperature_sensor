@@ -156,3 +156,13 @@ TEST(One_wire_temperature_sensor_esp_idf, get_temperature_in_celsius)
 
     DOUBLES_EQUAL(TEMPERATURE_IN_CELSIUS, temp_sensor->get_temperature_in_celsius(device_address), 0.000001f);
 }
+
+TEST(One_wire_temperature_sensor_esp_idf, request_temperature_BLOCKING)
+{
+    mock().expectOneCall("ds18x20_measure")
+          .withUnsignedIntParameter("pin", TEMPERATURE_SENSOR_PIN)
+          .withUnsignedLongLongIntParameter("addr", DS18X20_ANY)
+          .withBoolParameter("wait", true);
+    
+    temp_sensor->request_temperature_BLOCKING();
+}
