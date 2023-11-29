@@ -130,6 +130,7 @@ TEST(One_wire_temperature_sensor_esp_idf, request_temperatures)
           .withUnsignedLongLongIntParameter("addr", DS18X20_ANY)
           .withBoolParameter("wait", false)
           .andReturnValue(ESP_OK);
+    mock().ignoreOtherCalls();
 
     temp_sensor->request_temperatures();
 }
@@ -165,4 +166,80 @@ TEST(One_wire_temperature_sensor_esp_idf, request_temperature_BLOCKING)
           .withBoolParameter("wait", true);
     
     temp_sensor->request_temperature_BLOCKING();
+}
+
+TEST(One_wire_temperature_sensor_esp_idf,
+GIVEN_did_not_requested_temperature_THEN_is_sample_available_is_false)
+{
+    CHECK_FALSE(temp_sensor->is_sample_available());
+}
+
+#define RES temp_sensor->get_resolution()
+#define USECS_TO_WAIT_FOR_SAMPLE 1000*(int64_t)temp_sensor->get_millis_to_wait_for_conversion(RES)
+
+TEST(One_wire_temperature_sensor_esp_idf,
+GIVEN_requested_temperature_WHEN_time_to_wait_for_sample_is_not_over_THEN_return_false)
+{
+    mock().disable();
+    temp_sensor->request_temperatures();
+    mock().enable();
+
+    mock().expectOneCall("esp_timer_get_time")
+          .andReturnValue(USECS_TO_WAIT_FOR_SAMPLE - 2);
+
+    CHECK_FALSE(temp_sensor->is_sample_available());
+
+    mock().expectOneCall("esp_timer_get_time")
+          .andReturnValue(USECS_TO_WAIT_FOR_SAMPLE - 1);
+
+    CHECK_FALSE(temp_sensor->is_sample_available());
+}
+
+TEST(One_wire_temperature_sensor_esp_idf,
+GIVEN_requested_temperature_WHEN_reached_time_to_wait_for_sample_THEN_return_true)
+{
+    mock().disable();
+    temp_sensor->request_temperatures();
+    mock().enable();
+
+    mock().expectOneCall("esp_timer_get_time")
+          .andReturnValue(USECS_TO_WAIT_FOR_SAMPLE);
+
+    CHECK_TRUE(temp_sensor->is_sample_available());
+    CHECK_TRUE(temp_sensor->is_sample_available());
+}
+
+TEST(One_wire_temperature_sensor_esp_idf,
+WHEN_request_temperatures_after_100usecs_THEN_time_to_wait_for_sample_is_shifted_in_100usecs)
+{
+    int64_t TIME_SHIFT_IN_MICROSECS = 100;
+    mock().expectOneCall("esp_timer_get_time")
+          .andReturnValue(TIME_SHIFT_IN_MICROSECS);
+    mock().ignoreOtherCalls();
+    temp_sensor->request_temperatures();
+
+    mock().checkExpectations();
+    mock().clear();
+
+    int64_t USEC_SINCE_INIT_TO_WAIT_FOR_SAMPLE = TIME_SHIFT_IN_MICROSECS + USECS_TO_WAIT_FOR_SAMPLE;
+    mock().expectOneCall("esp_timer_get_time")
+          .andReturnValue(USEC_SINCE_INIT_TO_WAIT_FOR_SAMPLE - 1);
+    
+    CHECK_FALSE(temp_sensor->is_sample_available());
+
+    mock().expectOneCall("esp_timer_get_time")
+          .andReturnValue(USEC_SINCE_INIT_TO_WAIT_FOR_SAMPLE);
+    
+    CHECK_TRUE(temp_sensor->is_sample_available());
+    CHECK_TRUE(temp_sensor->is_sample_available());
+}
+
+TEST(One_wire_temperature_sensor_esp_idf,
+WHEN_request_temperature_blocking_THEN_sample_is_available)
+{
+    mock().disable();
+    temp_sensor->request_temperature_BLOCKING();
+    mock().enable();
+
+    CHECK_TRUE(temp_sensor->is_sample_available());
 }

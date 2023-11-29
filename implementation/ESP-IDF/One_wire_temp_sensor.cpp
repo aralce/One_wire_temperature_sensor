@@ -5,8 +5,10 @@
 
 #if defined(IS_RUNNING_TESTS)
     #include <mocks/ESP_IDF_driver/ds18x20.h>
+    #include <mocks/ESP_IDF_driver/esp_idf.h>
 #else
     #include "driver/ds18x20.h"
+    #include <esp_timer.h>
 #endif
 
 One_wire_temp_sensor::One_wire_temp_sensor(uint8_t pin) : pin_used(pin){
@@ -62,14 +64,18 @@ void One_wire_temp_sensor::set_resolution(uint8_t new_resolution) {
 
 #define DO_NOT_WAIT_FOR_CONVERSION false
 
-void One_wire_temp_sensor::request_temperatures() const {
+void One_wire_temp_sensor::request_temperatures() {
     ds18x20_measure((gpio_num_t)pin_used, DS18X20_ANY, DO_NOT_WAIT_FOR_CONVERSION);
+    microseconds_since_last_sample_request = esp_timer_get_time();
+    is_waiting_sample = true;
 }
 
 #define WAIT_FOR_CONVERSION true
 
-void One_wire_temp_sensor::request_temperature_BLOCKING() const
+void One_wire_temp_sensor::request_temperature_BLOCKING()
 {
+    is_waiting_sample = false;
+    _is_sample_available = true;
     ds18x20_measure((gpio_num_t)pin_used, DS18X20_ANY, WAIT_FOR_CONVERSION);
 }
 
@@ -103,6 +109,26 @@ uint16_t One_wire_temp_sensor::get_millis_to_wait_for_conversion(uint8_t resolut
 	default:
 		return 750;
 	}
+}
+
+bool One_wire_temp_sensor::is_sample_available() {
+    if (is_waiting_sample)
+        return is_time_to_enable_sample();
+    else
+        return _is_sample_available;
+}
+
+bool One_wire_temp_sensor::is_time_to_enable_sample()
+{
+    int64_t usecs_to_wait_sample = 1000*(int64_t)get_millis_to_wait_for_conversion(resolution);
+    if (esp_timer_get_time() - microseconds_since_last_sample_request >= usecs_to_wait_sample)
+    {
+        is_waiting_sample = false;
+        _is_sample_available = true;
+        return true;
+    }
+    else
+        return false;
 }
 
 #endif
